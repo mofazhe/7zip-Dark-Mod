@@ -5,8 +5,12 @@
 #include "resource.h"
 #include "OverwriteDialogRes.h"
 
+#include "../../../Common/Wildcard.h"
+
 #include "../../../Windows/FileName.h"
 #include "../../../Windows/PropVariantConv.h"
+
+#include "../Common/PropIDUtils.h"
 
 /*
 #include "Windows/COM.h"
@@ -976,6 +980,37 @@ void CApp::RefreshTitle(bool always)
   UString path = GetFocusedPanel()._currentFolderPrefix;
   if (path.IsEmpty())
     path = "7-Zip"; // LangString(IDS_APP_TITLE);
+  else {
+    CMyComPtr<IGetFolderArcProps> getFolderArcProps;
+    GetFocusedPanel()._folder.QueryInterface(IID_IGetFolderArcProps, &getFolderArcProps);
+    if (getFolderArcProps) {
+      CMyComPtr<IFolderArcProps> getProps;
+      getFolderArcProps->GetFolderArcProps(&getProps);
+      UInt32 numLevels;
+      if (getProps->GetArcNumLevels(&numLevels) != S_OK)
+        numLevels = 0;
+      for (UInt32 level2 = 0; level2 < numLevels; level2++)
+      {
+        UInt32 level = numLevels - 1;
+        NCOM::CPropVariant prop;
+        if (getProps->GetArcProp(level, kpidPath, &prop) == S_OK) {
+          ConvertPropertyToString2(path, prop, kpidName, 9);
+          break;
+        }
+      }
+    }
+    if (path.Len() >
+        #ifdef _WIN32
+        3
+        #else
+        1
+        #endif
+        && IS_PATH_SEPAR(path.Back()))
+      path.DeleteBack();
+    path = ExtractFileNameFromPath(path);
+  }
+  if (path.IsEmpty())
+    path = "7-Zip";
   if (!always && path == PrevTitle)
     return;
   PrevTitle = path;
