@@ -2,6 +2,9 @@
 
 #include "StdAfx.h"
 
+#include <wchar.h>
+// #include <cstdio.h>
+
 #include "resource.h"
 
 #include "../../../Common/IntToString.h"
@@ -31,57 +34,86 @@ using namespace NWindows;
 #define SPACE_REPLACE_CHAR (wchar_t)(0x2423)
 #define SPACE_TERMINATOR_CHAR (wchar_t)(0x9C)
 
-#define INT_TO_STR_SPEC(v) \
-  while (v >= 10) { temp[i++] = (Byte)('0' + (unsigned)(v % 10)); v /= 10; } \
-  *s++ = (Byte)('0' + (unsigned)v);
+// #define INT_TO_STR_SPEC(v) \
+//   while (v >= 10) { temp[i++] = (Byte)('0' + (unsigned)(v % 10)); v /= 10; } \
+//   *s++ = (Byte)('0' + (unsigned)v);
 
-static void ConvertSizeToString(UInt64 val, wchar_t *s) throw()
+// static void ConvertSizeToString1(UInt64 val, wchar_t *s) throw()
+// {
+//   Byte temp[32];
+//   unsigned i = 0;
+  
+//   if (val <= (UInt32)0xFFFFFFFF)
+//   {
+//     UInt32 val32 = (UInt32)val;
+//     INT_TO_STR_SPEC(val32)
+//   }
+//   else
+//   {
+//     INT_TO_STR_SPEC(val)
+//   }
+
+//   if (i < 3)
+//   {
+//     if (i != 0)
+//     {
+//       *s++ = temp[(size_t)i - 1];
+//       if (i == 2)
+//         *s++ = temp[0];
+//     }
+//     *s = 0;
+//     return;
+//   }
+
+//   unsigned r = i % 3;
+//   if (r != 0)
+//   {
+//     s[0] = temp[--i];
+//     if (r == 2)
+//       s[1] = temp[--i];
+//     s += r;
+//   }
+
+//   do
+//   {
+//     s[0] = ' ';
+//     s[1] = temp[(size_t)i - 1];
+//     s[2] = temp[(size_t)i - 2];
+//     s[3] = temp[(size_t)i - 3];
+//     s += 4;
+//   }
+//   while (i -= 3);
+  
+//   *s = 0;
+// }
+
+static void ConvertSizeToString(UInt64 size, wchar_t *output) throw()
 {
-  Byte temp[32];
-  unsigned i = 0;
-  
-  if (val <= (UInt32)0xFFFFFFFF)
-  {
-    UInt32 val32 = (UInt32)val;
-    INT_TO_STR_SPEC(val32)
-  }
-  else
-  {
-    INT_TO_STR_SPEC(val)
-  }
+  size_t outputSize;
+  // outputSize = sizeof(output) / sizeof(output[0]);
+  outputSize = sizeof(output);
+  // swprintf(output, outputSize, L"%llu B", size);
+  // swprintf(output, sizeof(output), L"55%dGB", 123);
 
-  if (i < 3)
-  {
-    if (i != 0)
-    {
-      *s++ = temp[(size_t)i - 1];
-      if (i == 2)
-        *s++ = temp[0];
-    }
-    *s = 0;
-    return;
+  if (size < (1ULL << 10)) {
+    // swprintf(output, outputSize, L"%lluB%zu", size, outputSize);
+    swprintf(output, outputSize, L"%lluB", size);
+  } else if (size < (1ULL << 20)) {
+    // swprintf(output, outputSize, L"%llu KB", size >> 10);
+    swprintf(output, outputSize, L"%.1fK", static_cast<double>(size) / (1ULL << 10));
+  } else if (size < (1ULL << 30)) {
+    // swprintf(output, outputSize, L"%llu MB", size >> 20);
+    swprintf(output, outputSize, L"%.1fM", static_cast<double>(size) / (1ULL << 20));
+  } else if (size < (1ULL << 40)) {
+    // swprintf(output, outputSize, L"%llu GB", size >> 30);
+    swprintf(output, outputSize, L"%.1fG", static_cast<double>(size) / (1ULL << 30));
+  } else if (size < (1ULL << 50))  {
+    // swprintf(output, outputSize, L"%llu TB", size >> 40);
+    swprintf(output, outputSize, L"%.1fT", static_cast<double>(size) / (1ULL << 40));
+  } else {
+    // swprintf(output, outputSize, L"%llu PB", size >> 50);
+    swprintf(output, outputSize, L"%.1fP", static_cast<double>(size) / (1ULL << 50));
   }
-
-  unsigned r = i % 3;
-  if (r != 0)
-  {
-    s[0] = temp[--i];
-    if (r == 2)
-      s[1] = temp[--i];
-    s += r;
-  }
-
-  do
-  {
-    s[0] = ' ';
-    s[1] = temp[(size_t)i - 1];
-    s[2] = temp[(size_t)i - 2];
-    s[3] = temp[(size_t)i - 3];
-    s += 4;
-  }
-  while (i -= 3);
-  
-  *s = 0;
 }
 
 UString ConvertSizeToString(UInt64 value);
@@ -808,6 +840,7 @@ void CPanel::Refresh_StatusBar()
     if (realIndex != kParentIndex)
     {
       ConvertSizeToString(GetItemSize(realIndex), sizeString);
+      // ConvertSizeToString(0, sizeString);
       NCOM::CPropVariant prop;
       if (_folder->GetProperty(realIndex, kpidMTime, &prop) == S_OK)
       {
