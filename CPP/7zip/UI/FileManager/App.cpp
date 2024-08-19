@@ -619,8 +619,38 @@ void CApp::OnCopy(bool move, bool copyToSame, unsigned srcPanelIndex)
       if (indices.Size() == 0)
         return;
       destPath = destPanel.GetFsPath();
-      if (NumPanels == 1)
+      if (NumPanels == 1) {
         Reduce_Path_To_RealFileSystemPath(destPath);
+
+        CMyComPtr<IGetFolderArcProps> getFolderArcProps;
+        GetFocusedPanel()._folder.QueryInterface(IID_IGetFolderArcProps, &getFolderArcProps);
+        if (getFolderArcProps) {
+          CMyComPtr<IFolderArcProps> getProps;
+          getFolderArcProps->GetFolderArcProps(&getProps);
+          UInt32 numLevels;
+          if (getProps->GetArcNumLevels(&numLevels) != S_OK)
+            numLevels = 0;
+          for (UInt32 level2 = 0; level2 < numLevels; level2++)
+          {
+            UInt32 level = numLevels - 1;
+            NCOM::CPropVariant prop;
+            if (getProps->GetArcProp(level, kpidPath, &prop) == S_OK) {
+              ConvertPropertyToString2(destPath, prop, kpidName, 9);
+              UString fileName = ExtractFileNameFromPath(destPath);
+              const int dotPos = fileName.ReverseFind_Dot();
+              UString prefix;
+              if (dotPos > 0) {
+                prefix = fileName.Left((unsigned)(dotPos));
+              } else {
+                prefix = fileName;
+              }
+              const UString zipDir = destPath.Left((unsigned)(destPath.ReverseFind_PathSepar() + 1));
+              destPath = zipDir + prefix;
+              break;
+            }
+          }
+        }
+      }
     }
   }
   
