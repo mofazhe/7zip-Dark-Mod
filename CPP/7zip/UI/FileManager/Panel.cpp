@@ -159,7 +159,27 @@ LRESULT CPanel::OnMessage(UINT message, WPARAM wParam, LPARAM lParam)
 
 LRESULT CMyListView::OnMessage(UINT message, WPARAM wParam, LPARAM lParam)
 {
-  if (message == WM_CHAR)
+  if (message == WM_XBUTTONUP) {
+    UINT button = GET_XBUTTON_WPARAM(wParam);
+    if (button == XBUTTON1 || button == XBUTTON2) {
+      bool forward = button == XBUTTON2;
+      // MessageBoxW(_window, L"XBUTTON2", L"7-Zip", MB_ICONERROR);
+      CPathState state = g_App.AppState.PathStack.getNavPath(forward);
+      if (!state.path.IsEmpty()) {
+        // MessageBoxW(_window, result.selectFile, L"7-Zip", MB_ICONERROR);
+        g_App.GetFocusedPanel().BindAndRefreshAndSelect(state.path, state.selectFile);
+        g_App.AppState.PathStack.checkNavResult(forward, g_App.GetFocusedPanel()._currentFolderPrefix);
+        // HRESULT result =
+        // if (result != S_OK) {
+        //   // g_App.AppState.PathStack.popForwardPath();
+        //   g_App.AppState.PathStack.writeToFile(UString("failed"));
+        // }
+        //  else {
+        //   MessageBoxW(_window, L"failed", L"7-Zip", MB_ICONERROR);
+        // }
+      }
+    }
+  } else if (message == WM_CHAR)
   {
     UINT scanCode = (UINT)((lParam >> 16) & 0xFF);
     bool extended = ((lParam & 0x1000000) != 0);

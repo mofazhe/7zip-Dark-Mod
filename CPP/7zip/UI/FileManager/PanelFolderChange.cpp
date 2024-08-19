@@ -332,6 +332,33 @@ HRESULT CPanel::BindToPathAndRefresh(const UString &path)
   return res;
 }
 
+HRESULT CPanel::BindAndRefreshAndSelect(const UString &path, const UString &focusedName)
+{
+  CDisableTimerProcessing disableTimerProcessing(*this);
+  CDisableNotify disableNotify(*this);
+  COpenResult openRes;
+  UString s = path;
+  
+  #ifdef _WIN32
+    if (!s.IsEmpty() && s[0] == '\"' && s.Back() == '\"')
+    {
+      s.DeleteBack();
+      s.Delete(0);
+    }
+  #endif
+
+  HRESULT res = BindToPath(s, UString(), openRes);
+  if (res == S_OK) {
+    CSelectedState state;
+    state.FocusedName = focusedName;
+    state.FocusedName_Defined = true;
+    RefreshListCtrl(state);
+  } else {
+    RefreshListCtrl();
+  }
+  return res;
+}
+
 void CPanel::SetBookmark(unsigned index)
 {
   _appState->FastFolders.SetString(index, _currentFolderPrefix);
@@ -407,6 +434,7 @@ void CPanel::LoadFullPathAndShow()
 {
   LoadFullPath();
   _appState->FolderHistory.AddString(_currentFolderPrefix);
+  _appState->PathStack.onOpenNewPath(_currentFolderPrefix);
 
   _headerComboBox.SetText(_currentFolderPrefix);
 

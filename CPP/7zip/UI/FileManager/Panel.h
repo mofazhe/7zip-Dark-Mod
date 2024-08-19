@@ -543,6 +543,7 @@ public:
   void SetToRootFolder();
   HRESULT BindToPath(const UString &fullPath, const UString &arcFormat, COpenResult &openRes); // can be prefix
   HRESULT BindToPathAndRefresh(const UString &path);
+  HRESULT BindAndRefreshAndSelect(const UString &path, const UString &focusedName);
   void OpenDrivesFolder();
   
   void SetBookmark(unsigned index);

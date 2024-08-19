@@ -855,6 +855,13 @@ void CPanel::Refresh_StatusBar()
             break;
         }
       }
+      if (_folder->GetProperty(realIndex, kpidName, &prop) == S_OK)
+      {
+        UString fileName;
+        ConvertPropertyToString2(fileName, prop, kpidName, 9);
+        g_App.AppState.PathStack.onSelectChanged(fileName);
+        // MessageBoxW(_window, fileName, L"7-Zip", MB_ICONERROR);
+      }
     }
   }
   _statusBar.SetText(2, sizeString);
