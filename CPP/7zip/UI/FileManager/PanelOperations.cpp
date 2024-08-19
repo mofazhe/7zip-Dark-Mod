@@ -268,6 +268,34 @@ BOOL CPanel::OnBeginLabelEdit(LV_DISPINFOW * lpnmh)
     return TRUE;
   if (IsThereReadOnlyFolder())
     return TRUE;
+
+  if (IsItem_Folder(realIndex))
+    return FALSE;
+  // if (!lpnmh || !lpnmh->item.pszText)
+  if (!lpnmh)
+    return FALSE;
+
+  // get id of the list view
+  HWND hwndListView = lpnmh->hdr.hwndFrom;
+  // index of the edit item
+  // int nItem = lpnmh->item.iItem;
+  // only select filename without suffix
+  UString fileName = GetItemName(realIndex);
+  const int dotPos = fileName.ReverseFind_Dot();
+  int nStartChar = 0;
+  int nEndChar;
+  if (dotPos > 0) {
+    nEndChar = dotPos;
+  } else {
+    nEndChar = fileName.Len();
+  }
+  // get id of edit view
+  HWND hwndEdit = ListView_GetEditControl(hwndListView);
+  if (hwndEdit)
+    SendMessage(hwndEdit, EM_SETSEL, (WPARAM)nStartChar, (LPARAM)nEndChar);
+  // UString name = GetItemName(realIndex);
+  // MessageBoxW(_window, name, L"7-Zip", MB_ICONERROR);
+
   return FALSE;
 }
 
