@@ -6,19 +6,28 @@ SET COPTS=-m0=lzma -mx9 -ms=on -mf=bcj2
 SET VERSION=%SZIP_VERSION%
 SET VERSION_CODE=%VERSION:.=%
 SET URL=https://www.7-zip.org/a/7z%VERSION_CODE%.exe
+SET DARK_URL=https://github.com/ozone10/7zip-Dark7zip/releases/download/v%VERSION%-v%DARK_7ZIP_VERSION%/7z%VERSION%-dark-x64.zip
 SET SZIP="C:\Program Files\7-Zip\7z.exe"
 SET LURL=https://raw.githubusercontent.com/mcmilk/7-Zip-zstd/master/CPP/7zip/Bundles
 
 SET WD=%cd%
 SET SKEL=%WD%\skel
+SET DARK=%WD%\dark
 
 REM Download our skeleton files
 mkdir %SKEL%
 cd %SKEL%
-:: make curl follow redirect
+:: Make curl follow redirect
 curl %URL% -L --max-redirs 5 --output 7-Zip.exe
 %SZIP% x 7-Zip.exe
 :: mkdir %WD%\totalcmd
+
+:: Download Dark7zip release
+mkdir %DARK%
+cd %DARK%
+curl %DARK_URL% -L --max-redirs 5 --output dark.zip
+%SZIP% x dark.zip
+
 goto start
 
 :doit
@@ -27,8 +36,12 @@ echo Doing ARCH=%ARCH% in SOURCE=%BIN%
 REM 7-Zip Files
 cd %SKEL%
 del *.exe *.dll *.sfx
-:: copy remaining files to free installation release
+
+:: Copy dark ini
+copy %DARK%\7zDark.ini 7zDark.ini
+:: Copy remaining files to free installation release
 xcopy . %WD%\..\portable\bin-%ARCH%\ /e
+
 FOR %%f IN (7z.dll 7z.exe 7z.sfx 7za.dll 7za.exe 7zCon.sfx 7zFM.exe 7zG.exe 7-zip.dll 7zxa.dll Uninstall.exe) DO (
   copy %BIN%\%%f %%f
 )

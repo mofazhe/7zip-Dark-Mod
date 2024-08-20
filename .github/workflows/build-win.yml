@@ -14,6 +14,7 @@ on:
 
 env:
   SZIP_VERSION: "24.08"
+  DARK_7ZIP_VERSION: "0.4.3.1"
 
 jobs:
   build:
@@ -176,6 +177,7 @@ jobs:
         shell: cmd
         run: |
           set SZIP_VERSION=${{env.SZIP_VERSION}}
+          set DARK_7ZIP_VERSION=${{env.DARK_7ZIP_VERSION}}
           xcopy artifact portable\ /e
           cd portable
           del do-release.cmd
