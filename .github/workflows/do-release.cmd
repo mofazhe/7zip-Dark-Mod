@@ -3,8 +3,9 @@ REM Build some release of 7-Zip ZS
 
 SET COPYCMD=/Y /B
 SET COPTS=-m0=lzma -mx9 -ms=on -mf=bcj2
-SET URL=https://www.7-zip.org/a/7z2201.exe
-SET VERSION=22.01
+SET VERSION=%SZIP_VERSION%
+SET VERSION_CODE=%VERSION:.=%
+SET URL=https://www.7-zip.org/a/7z%VERSION_CODE%.exe
 SET SZIP="C:\Program Files\7-Zip\7z.exe"
 SET LURL=https://raw.githubusercontent.com/mcmilk/7-Zip-zstd/master/CPP/7zip/Bundles
 
@@ -14,7 +15,8 @@ SET SKEL=%WD%\skel
 REM Download our skeleton files
 mkdir %SKEL%
 cd %SKEL%
-curl %URL% --output 7-Zip.exe
+:: make curl follow redirect
+curl %URL% -L --max-redirs 5 --output 7-Zip.exe
 %SZIP% x 7-Zip.exe
 :: mkdir %WD%\totalcmd
 goto start
@@ -25,13 +27,15 @@ echo Doing ARCH=%ARCH% in SOURCE=%BIN%
 REM 7-Zip Files
 cd %SKEL%
 del *.exe *.dll *.sfx
+:: copy remaining files to free installation release
+xcopy . %WD%\..\portable\bin-%ARCH%\ /e
 FOR %%f IN (7z.dll 7z.exe 7z.sfx 7za.dll 7za.exe 7zCon.sfx 7zFM.exe 7zG.exe 7-zip.dll 7zxa.dll Uninstall.exe) DO (
   copy %BIN%\%%f %%f
 )
 IF DEFINED ZIP32 copy %ZIP32% 7-zip32.dll
 %SZIP% a ..\%ARCH%.7z %COPTS%
 cd %WD%
-copy %BIN%\Install.exe + %ARCH%.7z 7z%VERSION%-dark-%ARCH%.exe
+copy %BIN%\Install.exe + %ARCH%.7z 7z-%VERSION%-dark-%ARCH%.exe
 del %ARCH%.7z
 
 :: REM Codec Files
@@ -62,7 +66,8 @@ REM Currently we build 4 architectures
 :: :done_x32
 
 SET ARCH=x64
-SET ZIP32=%WD%\bin-x86\7-zip.dll
+:: SET ZIP32=%WD%\bin-x86\7-zip.dll
+SET ZIP32=
 SET BIN=%WD%\bin-x64
 SET TCDLL=tc7z64.dll
 goto doit

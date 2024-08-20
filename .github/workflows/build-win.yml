@@ -1,4 +1,3 @@
-
 ########################################################################################
 # overview for supported targets:
 # 12.0 https://learn.microsoft.com/en-us/visualstudio/releases/2013/vs2013-compatibility-vs
@@ -10,9 +9,11 @@
 ########################################################################################
 
 name: Build Windows binaries
-on: 
+on:
   workflow_dispatch:
 
+env:
+  SZIP_VERSION: "24.08"
 
 jobs:
   build:
@@ -21,7 +22,7 @@ jobs:
     strategy:
       matrix:
         # arch: [ amd64, amd64_x86, amd64_arm, amd64_arm64 ]
-        arch: [ amd64 ]
+        arch: [amd64]
         include:
           # - arch: amd64_x86
           #   subsys: "5.01"
@@ -66,15 +67,15 @@ jobs:
           set > %WDIR%\build\env-%PLATFORM%.txt
           mkdir %OUTDIR%
 
-          cd %ROOT%\Bundles\Format7zExtract
-          nmake %OPTS%
-          IF %errorlevel% NEQ 0 EXIT 1
-          copy %PLATFORM%\7zxa.dll %OUTDIR%\7zxa.dll
+          :: cd %ROOT%\Bundles\Format7zExtract
+          :: nmake %OPTS%
+          :: IF %errorlevel% NEQ 0 EXIT 1
+          :: copy %PLATFORM%\7zxa.dll %OUTDIR%\7zxa.dll
 
-          cd %ROOT%\Bundles\Format7z
-          nmake %OPTS%
-          IF %errorlevel% NEQ 0 EXIT 1
-          copy %PLATFORM%\7za.dll %OUTDIR%\7za.dll
+          :: cd %ROOT%\Bundles\Format7z
+          :: nmake %OPTS%
+          :: IF %errorlevel% NEQ 0 EXIT 1
+          :: copy %PLATFORM%\7za.dll %OUTDIR%\7za.dll
 
           cd %ROOT%\Bundles\Format7zF
           nmake %OPTS%
@@ -101,6 +102,36 @@ jobs:
           IF %errorlevel% NEQ 0 EXIT 1
           copy %PLATFORM%\7z.sfx %OUTDIR%\7z.sfx
 
+          :: cd %ROOT%\Bundles\Codec_brotli
+          :: nmake %OPTS%
+          :: IF %errorlevel% NEQ 0 EXIT 1
+          :: copy %PLATFORM%\brotli.dll %OUTDIR%\brotli.dll
+
+          :: cd %ROOT%\Bundles\Codec_lizard
+          :: nmake %OPTS%
+          :: IF %errorlevel% NEQ 0 EXIT 1
+          :: copy %PLATFORM%\lizard.dll %OUTDIR%\lizard.dll
+
+          :: cd %ROOT%\Bundles\Codec_lz4
+          :: nmake %OPTS%
+          :: IF %errorlevel% NEQ 0 EXIT 1
+          :: copy %PLATFORM%\lz4.dll %OUTDIR%\lz4.dll
+
+          :: cd %ROOT%\Bundles\Codec_lz5
+          :: nmake %OPTS%
+          :: IF %errorlevel% NEQ 0 EXIT 1
+          :: copy %PLATFORM%\lz5.dll %OUTDIR%\lz5.dll
+
+          :: cd %ROOT%\Bundles\Codec_zstd
+          :: nmake %OPTS%
+          :: IF %errorlevel% NEQ 0 EXIT 1
+          :: copy %PLATFORM%\zstd.dll %OUTDIR%\zstd.dll
+
+          :: cd %ROOT%\Bundles\Codec_flzma2
+          :: nmake %OPTS%
+          :: IF %errorlevel% NEQ 0 EXIT 1
+          :: copy %PLATFORM%\flzma2.dll %OUTDIR%\flzma2.dll
+
           cd %ROOT%\..\..\C\Util\7zipInstall
           nmake %OPTS%
           IF %errorlevel% NEQ 0 EXIT 1
@@ -122,10 +153,10 @@ jobs:
           IF %errorlevel% NEQ 0 EXIT 1
           copy %PLATFORM%\7zCon.sfx %OUTDIR%\7zCon.sfx
 
-          cd %ROOT%\Bundles\Alone
-          nmake %OPTS%
-          IF %errorlevel% NEQ 0 EXIT 1
-          copy %PLATFORM%\7za.exe %OUTDIR%\7za.exe
+          :: cd %ROOT%\Bundles\Alone
+          :: nmake %OPTS%
+          :: IF %errorlevel% NEQ 0 EXIT 1
+          :: copy %PLATFORM%\7za.exe %OUTDIR%\7za.exe
 
           REM Will be by the do-release action
           copy %WDIR%\.github\workflows\do-release.cmd %WDIR%\build\do-release.cmd
@@ -139,29 +170,26 @@ jobs:
     runs-on: windows-2019
     needs: build
     steps:
-    - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v4
 
-    - name: Generate binaries for release
-      shell: cmd
-      run: |
-        xcopy artifact portable\ /e
-        cd portable
-        del do-release.cmd
-        cd ..\artifact
-        do-release.cmd
+      - name: Generate binaries for release
+        shell: cmd
+        run: |
+          set SZIP_VERSION=${{env.SZIP_VERSION}}
+          xcopy artifact portable\ /e
+          cd portable
+          del do-release.cmd
+          cd ..\artifact
+          do-release.cmd
 
-    - uses: actions/upload-artifact@v4
-      with:
-        name: 7-Zip Release binaries
-        path: |
-          artifact\*.exe
-          artifact\*.7z
-          portable\*
+      - uses: actions/upload-artifact@v4
+        with:
+          name: 7-Zip Release binaries
+          path: |
+            artifact\*.exe
+            artifact\*.7z
+            portable\*
 
-    - uses: geekyeggo/delete-artifact@v5
-      with:
+      - uses: geekyeggo/delete-artifact@v5
+        with:
           name: artifact
-
-
-
-
