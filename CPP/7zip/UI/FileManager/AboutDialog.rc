@@ -22,5 +22,7 @@ CAPTION "About 7-Zip"
   LTEXT  "", IDT_ABOUT_VERSION, m, 54, xc, 8
   LTEXT  "", IDT_ABOUT_DATE, m, 67, xc, 8
   LTEXT  MY_COPYRIGHT, -1, m, 80, xc, 8
-  LTEXT  "7-Zip is free software", IDT_ABOUT_INFO, m, y, xc, (by - y - 1)
+  LTEXT  "7-Zip is free software", IDT_ABOUT_INFO, m, y, xc, 8
+  LTEXT  "Dark mode provided by ozone10 v0.4.3.1", -1, m, 106, xc, 8
+  LTEXT  "Mod by mfz v1.1.0", -1, m, 119, xc, 8
 }
